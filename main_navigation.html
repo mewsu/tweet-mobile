@@ -27,24 +27,30 @@
 	</head>
 	<body>
 
-		<div data-role="page" data-theme="b">
-			<!-- top navigation bar -->
+		<div data-role="page" data-theme="b" id="top">
+			<!-- divs for user profile popups -->
+			<div data-role="popup" id="pop_1"></div>
+			<div data-role="popup" id="pop_2"></div>
+			<div data-role="popup" id="pop_3"></div> 
+			<div data-role="popup" id="pop_4"></div> 
+			<div data-role="popup" id="pop_5"></div> 
+			<div data-role="popup" id="pop_6"></div> 
 			<div data-role="header" data-position="fixed">
 				<h1>Favorite Tweets</h1>
 				<a href="#" data-icon="arrow-r" class="ui-btn-right">Next</a>
 				<a href="#" data-icon="arrow-l" class="ui-btn-left">Back</a>
 			</div><!-- /header -->
 			<div data-role="content" class="ui-grid-b my-breakpoint" id="tweets" >
-				<div data-role="popup" id="popupBasic">
-					<p>test</p>
-				</div>
+
 			</div>
 
 			<div data-role="footer" data-position="fixed"><h1>Footer</h1></div>
 		</div>
 	</body>
 	<script type="text/javascript">
+
 		var blockType = 'a';
+		var popId = 1;
 		function toggleBlock() {
 			if (blockType=='a')
 				return 'b';
@@ -55,11 +61,14 @@
 		}
 		$.getJSON('favs.json', function (data) {
 			$.each(data, function () {
-				content = '<div class="ui-block-'+blockType+'"><h3 align="left">"'+this.text+'"</h3><h4 align="right">-<a href="#popupBasic" data-rel="popup" data-inline="true" data-transition="pop">'+this.user.screen_name+'</a><br>'+this.created_at+'</h4><br><br>';
+				content = '<div class="ui-block-'+blockType+'"><h3 align="left">"'+this.text+'"</h3><h4 align="right">-<a href="#pop_'+popId+'" data-rel="popup"  data-inline="true" data-transition="pop">'+this.user.screen_name+'</a><br>'+this.created_at+'</h4><br><br>';
 				blockType = toggleBlock();
+				userPopup = '<h4>'+this.user.screen_name+'<br><br><img src="'+this.user.profile_image_url+'"><br><br>Real Name: '+this.user.name+'<br><br>Location: '+this.user.location+'<br><br>Info: '+this.user.description+'<br><br>Homepage: '+this.user.url+'</h4>';
 				$('#tweets').append(content);
+				$('#pop_'+popId).append(userPopup);
+				popId++;
 			});
-		});
+		});		
 	</script>
 	
 </html>
