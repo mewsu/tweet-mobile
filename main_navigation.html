@@ -1,0 +1,65 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<title>Page Title</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="http://code.jquery.com/mobile/1.3.0/jquery.mobile-1.3.0.min.css" />
+		<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+		<script src="http://code.jquery.com/mobile/1.3.0/jquery.mobile-1.3.0.min.js"></script>
+		 <style>
+			.ui-block-a, .ui-block-b, .ui-block-c {
+				padding:25px;
+			}
+			@media all and (max-width: 50em) {
+				.my-breakpoint .ui-block-a, 
+				.my-breakpoint .ui-block-b, 
+				.my-breakpoint .ui-block-c,
+				.my-breakpoint .ui-block-d,
+				.my-breakpoint .ui-block-e { 
+					width: 100%; 
+					float:none; 
+				}
+			}
+			
+		</style>
+		
+		
+	</head>
+	<body>
+
+		<div data-role="page" data-theme="b">
+			<!-- top navigation bar -->
+			<div data-role="header" data-position="fixed">
+				<h1>Favorite Tweets</h1>
+				<a href="#" data-icon="arrow-r" class="ui-btn-right">Next</a>
+				<a href="#" data-icon="arrow-l" class="ui-btn-left">Back</a>
+			</div><!-- /header -->
+			<div data-role="content" class="ui-grid-b my-breakpoint" id="tweets" >
+				<div data-role="popup" id="popupBasic">
+					<p>test</p>
+				</div>
+			</div>
+
+			<div data-role="footer" data-position="fixed"><h1>Footer</h1></div>
+		</div>
+	</body>
+	<script type="text/javascript">
+		var blockType = 'a';
+		function toggleBlock() {
+			if (blockType=='a')
+				return 'b';
+			else if (blockType=='b')
+				return 'c';
+			else
+				return 'a';
+		}
+		$.getJSON('favs.json', function (data) {
+			$.each(data, function () {
+				content = '<div class="ui-block-'+blockType+'"><h3 align="left">"'+this.text+'"</h3><h4 align="right">-<a href="#popupBasic" data-rel="popup" data-inline="true" data-transition="pop">'+this.user.screen_name+'</a><br>'+this.created_at+'</h4><br><br>';
+				blockType = toggleBlock();
+				$('#tweets').append(content);
+			});
+		});
+	</script>
+	
+</html>
