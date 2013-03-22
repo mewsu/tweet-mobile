@@ -7,9 +7,12 @@
 		<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
 		<script src="http://code.jquery.com/mobile/1.3.0/jquery.mobile-1.3.0.min.js"></script>
 		 <style>
+			
 			.ui-block-a, .ui-block-b, .ui-block-c {
-				padding:25px;
-			}
+				padding-right:35px;
+				padding-left:35px;
+			} 
+			
 			@media all and (max-width: 50em) {
 				.my-breakpoint .ui-block-a, 
 				.my-breakpoint .ui-block-b, 
@@ -19,6 +22,10 @@
 					width: 100%; 
 					float:none; 
 				}
+			}
+			
+			a {
+				text-decoration:none
 			}
 			
 		</style>
@@ -34,7 +41,10 @@
 			<div data-role="popup" id="pop_3"></div> 
 			<div data-role="popup" id="pop_4"></div> 
 			<div data-role="popup" id="pop_5"></div> 
-			<div data-role="popup" id="pop_6"></div> 
+			<div data-role="popup" id="pop_6"></div>
+			<div data-role="popup" id="iframePop">
+				<iframe id="iframe" src="" width="800" height="400" onload="chkFrame(this)"seamless></iframe>
+			</div>
 			<div data-role="header" data-position="fixed">
 				<h1>Favorite Tweets</h1>
 				<a href="#" data-icon="arrow-r" class="ui-btn-right">Next</a>
@@ -51,6 +61,8 @@
 
 		var blockType = 'a';
 		var popId = 1;
+		
+		//Function to toggle block types
 		function toggleBlock() {
 			if (blockType=='a')
 				return 'b';
@@ -59,16 +71,65 @@
 			else
 				return 'a';
 		}
+		
+		//Function to search for user mentions
+		function findMentions(str) {
+			return str.match(/@[a-zA-Z0-9]+/gi);
+		} 
+		
+		//Function to search for URL links
+		function findLinks(str) {
+			return str.match(/http:\/\/.\S+/gi);
+		} 
+		
+		//Function; replaces iframe src to link url
+		function replaceSrc(url) {
+			$('#iframe').attr('src', url);
+		}
+		
+		//Function; manually open popup
+		function openPopup(id) {
+			$('#'+id).popup("open");
+		}
+		
+		function chkFrame(fr) {
+			if (!fr.contentDocument) alert('Cross domain');
+		 }
+		//Delgate all links on click; replace iframe src value to value of clicked link,
+		//then popup iframe.
+		$(document).on('click', '#iframe_link', function() {
+			replaceSrc(($(this).attr('value')));
+			openPopup('iframePop');
+		});
+		
+		
+		
+		var pattern = /@[a-zA-Z0-9]+/gi;
+		var results = [];
 		$.getJSON('favs.json', function (data) {
 			$.each(data, function () {
-				content = '<div class="ui-block-'+blockType+'"><h3 align="left">"'+this.text+'"</h3><h4 align="right">-<a href="#pop_'+popId+'" data-rel="popup"  data-inline="true" data-transition="pop">'+this.user.screen_name+'</a><br>'+this.created_at+'</h4><br><br>';
+				var text = this.text;
+				mentions = findMentions(text);
+				links = findLinks(text);
+				if (mentions)
+					$.each(mentions, function (index, name) { //highlight mentions
+						text = text.replace(name, '<span style="color:#348781">'+name+'</span>');
+					});
+				if (links)
+					$.each(links, function (index, url) { //highlight links and make them links
+						text = text.replace(url, '<a href="#" id="iframe_link" value="'+url+'"><span style="color:#C12869">'+url+'</span></a>');
+						
+					});
+				content = '<div class="ui-block-'+blockType+'"><h3 align="left">"'+text+'"</h3><h4 align="right">-<a href="#pop_'+popId+'" data-rel="popup"  data-inline="true" data-transition="pop">'+this.user.screen_name+'</a><br>'+this.created_at+'</h4><br><br>';
 				blockType = toggleBlock();
-				userPopup = '<h4>'+this.user.screen_name+'<br><br><img src="'+this.user.profile_image_url+'"><br><br>Real Name: '+this.user.name+'<br><br>Location: '+this.user.location+'<br><br>Info: '+this.user.description+'<br><br>Homepage: '+this.user.url+'</h4>';
+				userPopup = '<h2>Profile:</h2><h4>'+this.user.screen_name+'<br><br><img src="'+this.user.profile_image_url+'"><br><br>Real Name: '+this.user.name+'<br><br>Location: '+this.user.location+'<br><br>Info: '+this.user.description+'<br><br>Homepage: '+this.user.url+'</h4>';
 				$('#tweets').append(content);
 				$('#pop_'+popId).append(userPopup);
 				popId++;
+
 			});
-		});		
+		});	
+		//replaceSrc();
 	</script>
 	
 </html>
