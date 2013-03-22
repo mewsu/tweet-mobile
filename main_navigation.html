@@ -28,6 +28,10 @@
 				text-decoration:none
 			}
 			
+			iframe {
+				max-width: 100%;
+			}
+			
 		</style>
 		
 		
@@ -42,19 +46,33 @@
 			<div data-role="popup" id="pop_4"></div> 
 			<div data-role="popup" id="pop_5"></div> 
 			<div data-role="popup" id="pop_6"></div>
+			<!-- div for iframe links -->
 			<div data-role="popup" id="iframePop">
 				<iframe id="iframe" src="" width="800" height="400" onload="chkFrame(this)"seamless></iframe>
 			</div>
+			<!-- div for options panel -->
+			<div data-role="panel" id="optionsPanel" data-position="right" data-theme="a" data-display="push">
+				<h3>Options</h3>
+				<form>
+					<fieldset data-role="controlgroup" data-type="horizontal">
+						<legend>Links:</legend>
+						<input data-theme="a" name="radio-choice-h-2" id="option_iframe" value="on" checked="checked" type="radio">
+						<label for="option_iframe">iFrame</label>
+						<input data-theme="a" name="radio-choice-h-2" id="option_browser" value="off" type="radio">
+						<label for="option_browser">Browser</label>
+					</fieldset>
+				</form>
+			</div><!-- /panel -->
 			<div data-role="header" data-position="fixed">
 				<h1>Favorite Tweets</h1>
 				<a href="#" data-icon="arrow-r" class="ui-btn-right">Next</a>
 				<a href="#" data-icon="arrow-l" class="ui-btn-left">Back</a>
 			</div><!-- /header -->
-			<div data-role="content" class="ui-grid-b my-breakpoint" id="tweets" >
-
+			<div data-role="content" class="ui-grid-b my-breakpoint" id="tweets" ></div>
+			<div data-role="footer" data-position="fixed">
+				<h1>Footer</h1>
+				<a href="#optionsPanel" data-icon="gear" class="ui-btn-right">Options</a>
 			</div>
-
-			<div data-role="footer" data-position="fixed"><h1>Footer</h1></div>
 		</div>
 	</body>
 	<script type="text/javascript">
@@ -95,11 +113,17 @@
 		function chkFrame(fr) {
 			if (!fr.contentDocument) alert('Cross domain');
 		 }
+		 
 		//Delgate all links on click; replace iframe src value to value of clicked link,
 		//then popup iframe.
 		$(document).on('click', '#iframe_link', function() {
-			replaceSrc(($(this).attr('value')));
-			openPopup('iframePop');
+			var url = $(this).attr('value');
+			if($('#option_iframe').is(':checked')) {
+				replaceSrc(url);
+				openPopup('iframePop');
+			} else {
+				window.open(url);
+			}
 		});
 		
 		
