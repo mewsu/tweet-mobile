@@ -1,0 +1,27 @@
+A2 Layout:
+
+--- "Main Navigation Window" ---
+- Display basic info of tweets
+	- Date created
+	- Text
+	- Source (clicks to open atual link)
+	- User name originated (click to pop up window for user info)
+	- Additional stuff (places, hastags, user mentions) entities --> hashtags/ urls/user_mentions
+
+
+--- "Secondary Pop-up Windows" ---
+- Pops up when user name is clicked, shows more info of user
+	- Name and (screen name)
+	- Profile picture (profile_image_url)
+	- Location
+	- Description
+	- URL (homepage)
+	- Follower count
+	- Member since (created_at)
+
+--- "Pagination Mechanism" ---
+- Affects main navigation window; should only display up to x entries (tweets)
+
+
+--- "Module to Handle Links through iFrame" ---
+- Affects 
