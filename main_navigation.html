@@ -46,7 +46,7 @@
 			<div data-role="popup" data-theme="a" id="pop_6" class="profile_pop"></div>
 			<!-- div for iframe links -->
 			<div data-role="popup" id="iframePop">
-				<iframe id="iframe" src="" width="800" height="400" onload="chkFrame(this)"seamless></iframe>
+				<iframe id="iframe" src="" width="800" height="400"seamless></iframe>
 			</div>
 			<!-- div for options panel -->
 			<div data-role="panel" id="optionsPanel" data-position="right" data-theme="a" data-display="push">
@@ -157,24 +157,7 @@
 			});
 		}
 			
-		function chkFrame(fr) {
-			if (!fr.contentDocument) alert('Cross domain');
-		 }
-		 
-		//Delgate all links on click; replace iframe src value to value of clicked link,
-		//then popup iframe.
-		$(document).on('click', '#iframe_link', function() {
-			var url = $(this).attr('value');
-			if($('#option_iframe').is(':checked')) {
-				replaceSrc(url);
-				openPopup('iframePop');
-			} else {
-				window.open(url);
-			}
-		});
-		
-		//Next page click function
-		$('#nextPage').click(function() {
+		function loadNextPage() {
 			if (end < allTweets.length) {
 				start += 6;
 				end += 6;
@@ -185,10 +168,9 @@
 			} else 
 				//alert('You are on the last page!');
 				$.mobile.changePage( "#last_page_dialog", { role: "dialog" } );
-		});
+		}
 		
-		//Previous page click function
-		$('#prevPage').click(function() {
+		function loadPrevPage() {
 			if (start > 0) {
 				start -= 6;
 				end -= 6;
@@ -198,6 +180,44 @@
 				buildNewPage();
 			} else 
 				$.mobile.changePage( "#first_page_dialog", { role: "dialog" } );
+		
+		}
+		 
+		//Delgate all links on click; replace iframe src value to value of clicked link,
+		//then popup iframe.
+		$(document).on('click', '.iframe_link', function() {
+			var url = $(this).attr('value');
+			if($('#option_iframe').is(':checked')) {
+				replaceSrc(url);
+				openPopup('iframePop');
+			} else {
+				window.open(url);
+			}
+		});
+		
+		$(document).on('click', '.homepage_link', function() {
+			var url = $(this).attr('value');
+			window.open(url);
+		});
+	
+		//Next page swipe function
+        $( document ).on( "swipeleft", function() {
+			loadNextPage();
+        });
+		
+		//Previous page swipe function
+        $( document ).on( "swiperight", function() {
+			loadPrevPage();
+        });
+		
+		//Next page click function
+		$('#nextPage').click(function() {
+			loadNextPage();
+		});
+		
+		//Previous page click function
+		$('#prevPage').click(function() {
+			loadPrevPage();
 		});
 		
 		//add close button to all profile pop ups
@@ -218,7 +238,7 @@
 					});
 				if (links)
 					$.each(links, function (index, url) { //highlight links and make them links
-						text = text.replace(url, '<a href="#" id="iframe_link" value="'+url+'"><span style="color:#C12869">'+url+'</span></a>');
+						text = text.replace(url, '<a href="#" class="iframe_link" value="'+url+'"><span style="color:#C12869">'+url+'</span></a>');
 						
 					});
 				if (hashtags)
@@ -227,7 +247,7 @@
 						
 					});
 				//profile content
-				userPopup = '<div class="profile_content"><h2>Profile:</h2><h4>'+this.user.screen_name+'<br><br><img src="'+this.user.profile_image_url+'"><br><br>Real Name: '+this.user.name+'<br><br>Location: '+this.user.location+'<br><br>Info: '+this.user.description+'<br><br>Homepage: '+this.user.url+'</h4></div>';
+				userPopup = '<div class="profile_content"><h2>Profile:</h2><h4>'+this.user.screen_name+'<br><br><img src="'+this.user.profile_image_url+'"><br><br>Real Name: '+this.user.name+'<br><br>Location: '+this.user.location+'<br><br>Info: '+this.user.description+'<br><br>Homepage: <a href="#" class="homepage_link" value="'+this.user.url+'">'+this.user.url+'</a></h4></div>';
 				//tweet content
 				content = '<div class="ui-block-'+blockType+'"><h3 align="left">"'+text+'"</h3><h4 align="right">-<a href="#pop_'+popId+'" class="profile_link"  data-rel="popup"  data-inline="true" data-transition="pop">'+this.user.screen_name+'</a><br>'+this.created_at+'</h4><br><br>';
 				//toggle next block
