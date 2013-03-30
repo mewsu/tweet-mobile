@@ -1,1 +1,268 @@
-my github page
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<title>Page Title</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="http://code.jquery.com/mobile/1.3.0/jquery.mobile-1.3.0.min.css" />
+		<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+		<script src="http://code.jquery.com/mobile/1.3.0/jquery.mobile-1.3.0.min.js"></script>
+		 <style>
+			
+			.ui-block-a, .ui-block-b, .ui-block-c {
+				padding-right:35px;
+				padding-left:35px;
+			} 
+			
+			@media all and (max-width: 50em) {
+				.my-breakpoint .ui-block-a, 
+				.my-breakpoint .ui-block-b, 
+				.my-breakpoint .ui-block-c,
+				.my-breakpoint .ui-block-d,
+				.my-breakpoint .ui-block-e { 
+					width: 100%; 
+					float:none; 
+				}
+			}
+			
+			a {
+				text-decoration:none
+			}
+			
+			iframe {
+				max-width: 100%;
+			}
+			
+		</style>
+	</head>
+	<body>
+
+		<div data-role="page" data-theme="b" id="top">
+			<!-- divs for user profile popups -->
+			<div data-role="popup" data-theme="a" id="pop_1" class="profile_pop"></div>
+			<div data-role="popup" data-theme="a" id="pop_2" class="profile_pop"></div>
+			<div data-role="popup" data-theme="a" id="pop_3" class="profile_pop"></div> 
+			<div data-role="popup" data-theme="a" id="pop_4" class="profile_pop"></div> 
+			<div data-role="popup" data-theme="a" id="pop_5" class="profile_pop"></div> 
+			<div data-role="popup" data-theme="a" id="pop_6" class="profile_pop"></div>
+			<!-- div for iframe links -->
+			<div data-role="popup" id="iframePop">
+				<iframe id="iframe" src="" width="800" height="400"seamless></iframe>
+			</div>
+			<!-- div for options panel -->
+			<div data-role="panel" id="optionsPanel" data-position="right" data-theme="a" data-display="push">
+				<h3>Options</h3>
+				<form>
+					<fieldset data-role="controlgroup" data-type="horizontal">
+						<legend>Links:</legend>
+						<input data-theme="a" name="radio-choice-h-2" id="option_iframe" value="on" checked="checked" type="radio">
+						<label for="option_iframe">iFrame</label>
+						<input data-theme="a" name="radio-choice-h-2" id="option_browser" value="off" type="radio">
+						<label for="option_browser">Browser</label>
+					</fieldset>
+				</form>
+			</div>
+			<!-- Visible Page -->
+			<!-- Top Navigation bar -->
+			<div data-role="header" data-position="fixed">
+				<h1>Favorite Tweets</h1>
+				<a href="#" id="nextPage" data-icon="arrow-r" class="ui-btn-right">Next</a>
+				<a href="#" id="prevPage" data-icon="arrow-l" class="ui-btn-left">Back</a>
+			</div>
+			<!-- Content (Tweets) -->
+			<div data-role="content" class="ui-grid-b my-breakpoint" id="tweets" ></div>
+			<!-- Bottom navigation bar -->
+			<div data-role="footer" data-position="fixed">
+				<h1>Footer</h1>
+				<a href="#optionsPanel" data-icon="gear" class="ui-btn-right">Options</a>
+			</div>
+		</div>
+		<!-- Error dialog pages -->
+		<div data-role="page" data-theme="b" id="last_page_dialog">
+			<div data-role="header">
+				<h2>No more pages</h2>
+			</div>
+			<div data-role="content">
+				<h3 align="center">You are on the last page!</h3>
+				<a href="#" data-role="button" data-theme="b" data-rel="back">Don't need you to tell me.</a>
+			</div>
+		</div>
+		<div data-role="page" data-theme="b" id="first_page_dialog">
+			<div data-role="header">
+				<h2>No more pages</h2>
+			</div>
+			<div data-role="content">
+				<h3 align="center">You are on the first page!</h3>
+				<a href="#" data-role="button" data-theme="b" data-rel="back">I knew that.</a>
+			</div>
+		</div>
+	</body>
+	<script type="text/javascript">
+
+		var blockType = 'a';
+		var popId = 1;
+		var start = 0;
+		var end = 6;
+		var allTweets = [];
+		var tweetObject = {};
+		//Function to toggle block types
+		function toggleBlock() {
+			if (blockType=='a')
+				return 'b';
+			else if (blockType=='b')
+				return 'c';
+			else
+				return 'a';
+		}
+		
+		//Function to search for user mentions
+		function findMentions(str) {
+			return str.match(/@[a-zA-Z0-9]+/gi);
+		} 
+		
+		//Function to search for URL links
+		function findLinks(str) {
+			return str.match(/http:\/\/.\S+/gi);
+		} 
+		
+		//Function to search for hashtags
+		function findHashtags(str) {
+			return str.match(/#[a-zA-Z0-9]+/gi);
+		} 
+		
+		//Function; replaces iframe src to link url
+		function replaceSrc(url) {
+			$('#iframe').attr('src', url);
+		}
+		
+		//Function; manually open popup
+		function openPopup(id) {
+			$('#'+id).popup("open");
+		}
+		
+		//Function; appends close buttons to all profile pops.. lol
+		function appendCloseButton() {
+			$('.profile_pop').append('<a href="#" data-rel="back" data-role="button" data-theme="a" data-icon="delete" data-iconpos="notext" class="ui-btn-right">Close</a>');
+		}
+		
+		//Function; reloads tweets in content to reflect next page
+		function buildNewPage() {
+			newTweets = allTweets.slice(start, end);
+			//reset popId counter so profiles match
+			popId = 1;
+			$.each(newTweets, function (key, value) {
+				//alert(value.content);
+				$('#tweets').append(value.content)
+				$('#pop_'+popId).append(value.profile); 
+				popId++;
+			});
+		}
+			
+		function loadNextPage() {
+			if (end < allTweets.length) {
+				start += 6;
+				end += 6;
+				popId = 1;
+				$('#tweets').empty(); //removes all tweets
+				$('.profile_content').remove(); //removes profile pop-up content; keeps button
+				buildNewPage();
+			} else 
+				//alert('You are on the last page!');
+				$.mobile.changePage( "#last_page_dialog", { role: "dialog" } );
+		}
+		
+		function loadPrevPage() {
+			if (start > 0) {
+				start -= 6;
+				end -= 6;
+				popId = 1;
+				$('#tweets').empty(); //removes all tweets
+				$('.profile_content').remove(); //removes profile pop-up content; keeps button
+				buildNewPage();
+			} else 
+				$.mobile.changePage( "#first_page_dialog", { role: "dialog" } );
+		
+		}
+		 
+		//Delgate all links on click; replace iframe src value to value of clicked link,
+		//then popup iframe.
+		$(document).on('click', '.iframe_link', function() {
+			var url = $(this).attr('value');
+			if($('#option_iframe').is(':checked')) {
+				replaceSrc(url);
+				openPopup('iframePop');
+			} else {
+				window.open(url);
+			}
+		});
+		
+		$(document).on('click', '.homepage_link', function() {
+			var url = $(this).attr('value');
+			window.open(url);
+		});
+	
+		//Next page swipe function
+        $( document ).on( "swipeleft", function() {
+			loadNextPage();
+        });
+		
+		//Previous page swipe function
+        $( document ).on( "swiperight", function() {
+			loadPrevPage();
+        });
+		
+		//Next page click function
+		$('#nextPage').click(function() {
+			loadNextPage();
+		});
+		
+		//Previous page click function
+		$('#prevPage').click(function() {
+			loadPrevPage();
+		});
+		
+		//add close button to all profile pop ups
+		appendCloseButton();
+		
+		$.getJSON('favs2.json', function (data) {
+			//buildPages(data.length);
+			$.each(data, function () {
+				if (popId > 6) //reset id to 0
+					popId = 1;
+				var text = this.text;
+				mentions = findMentions(text);
+				links = findLinks(text);
+				hashtags = findHashtags(text);
+				if (mentions)
+					$.each(mentions, function (index, name) { //highlight mentions
+						text = text.replace(name, '<span style="color:#348781">'+name+'</span>');
+					});
+				if (links)
+					$.each(links, function (index, url) { //highlight links and make them links
+						text = text.replace(url, '<a href="#" class="iframe_link" value="'+url+'"><span style="color:#C12869">'+url+'</span></a>');
+						
+					});
+				if (hashtags)
+					$.each(hashtags, function (index, tag) { //highlight hashtags
+						text = text.replace(tag, '<span style="color:#C7A317">'+tag+'</span>');
+						
+					});
+				//profile content
+				userPopup = '<div class="profile_content"><h2>Profile:</h2><h4>'+this.user.screen_name+'<br><br><img src="'+this.user.profile_image_url+'"><br><br>Real Name: '+this.user.name+'<br><br>Location: '+this.user.location+'<br><br>Info: '+this.user.description+'<br><br>Homepage: <a href="#" class="homepage_link" value="'+this.user.url+'">'+this.user.url+'</a></h4></div>';
+				//tweet content
+				content = '<div class="ui-block-'+blockType+'"><h3 align="left">"'+text+'"</h3><h4 align="right">-<a href="#pop_'+popId+'" class="profile_link"  data-rel="popup"  data-inline="true" data-transition="pop">'+this.user.screen_name+'</a><br>'+this.created_at+'</h4><br><br>';
+				//toggle next block
+				blockType = toggleBlock();
+				//create a tweet object
+				tweetObject = {};
+				tweetObject.content = content;
+				tweetObject.profile = userPopup;
+				//push tweet object to all tweets array
+				allTweets.push(tweetObject);
+				popId++;
+			});
+			buildNewPage();
+		});	
+		
+	</script>
+	
+</html>
