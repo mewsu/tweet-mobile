@@ -44,8 +44,9 @@
 			<div data-role="popup" data-theme="a" id="pop_4" class="ui-content"></div> 
 			<div data-role="popup" data-theme="a" id="pop_5" class="ui-content"></div> 
 			<div data-role="popup" data-theme="a" id="pop_6" class="ui-content"></div>
+			<div data-role="popup" data-theme="a" id="pop_img" class="ui-content"></div>
 			<!-- div for iframe links -->
-			<div data-role="popup" id="iframePop">
+			<div data-role="popup" id="iframePop" data-overlay-theme="a" data-theme="d" data-tolerance="15,15" class="ui-content">
 				<iframe id="iframe" src="" width="800" height="400"seamless></iframe>
 			</div>
 			<!-- div for options panel -->
@@ -105,6 +106,7 @@
 		var pageNum = 1;
 		var allTweets = [];
 		var tweetObject = {};
+		var allImages = [];
 		//Function to toggle block types
 		function toggleBlock() {
 			if (blockType=='a')
@@ -122,8 +124,27 @@
 		
 		//Function to search for URL links
 		function findLinks(str) {
-			return str.match(/http:\/\/.\S+/gi);
+			var url_list = [];
+			$.each(str, function() {
+				url_list.push(this.url);
+			});
+			return url_list;
+			//return str.match(/http:\/\/.\S+/gi);
 		} 
+		
+		function findImages(str) {
+			if (str) {
+				var img_list = [];
+				$.each(str, function() {
+					var img_obj = {};
+					img_obj.url = this.url;
+					img_obj.extended_url = this.media_url;
+					img_list.push(img_obj);
+				});
+				//alert(img_list);
+				return img_list;
+			} else return null;
+		}
 		
 		//Function to search for hashtags
 		function findHashtags(str) {
@@ -151,8 +172,9 @@
 			//reset popId counter so profiles match
 			popId = 1;
 			$.each(newTweets, function (key, value) {
-				//alert(value.content);
+				//append tweet content to page
 				$('#tweets').append(value.content)
+				//append profile content to popup div
 				$('#pop_'+popId).append(value.profile); 
 				popId++;
 			});
@@ -171,7 +193,6 @@
 				buildNewPage();
 
 			} else 
-				//alert('You are on the last page!');
 				$.mobile.changePage( "#last_page_dialog", { role: "dialog" } );
 		}
 		
@@ -204,9 +225,17 @@
 			}
 		});
 		
+		//Homepage link click funcion
 		$(document).on('click', '.homepage_link', function() {
 			var url = $(this).attr('value');
 			window.open(url);
+		});
+	
+		//Image link click function
+		$(document).on('click', '.image_link', function() {
+			var url = $(this).attr('value');
+			$('#pop_img').html('<img src='+url+'>');
+			openPopup('pop_img');
 		});
 	
 		//Next page swipe function
@@ -239,7 +268,8 @@
 					popId = 1;
 				var text = this.text;
 				mentions = findMentions(text);
-				links = findLinks(text);
+				links = findLinks(this.entities.urls);
+				imgs = findImages(this.entities.media);
 				hashtags = findHashtags(text);
 				if (mentions)
 					$.each(mentions, function (index, name) { //highlight mentions
@@ -253,6 +283,11 @@
 				if (hashtags)
 					$.each(hashtags, function (index, tag) { //highlight hashtags
 						text = text.replace(tag, '<span style="color:#C7A317">'+tag+'</span>');
+						
+					});
+				if (imgs)
+					$.each(imgs, function (index, img_obj) { //highlight hashtags
+						text = text.replace(img_obj.url, '<a href="#" class="image_link" value="'+img_obj.extended_url+'">'+img_obj.url+'/a>');
 						
 					});
 				//profile content
