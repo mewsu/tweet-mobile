@@ -1,4 +1,4 @@
-A2 Layout:
+A3 Layout:
 
 --- "Main Navigation Window" ---
 - Display basic info of tweets
