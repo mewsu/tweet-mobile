@@ -7,12 +7,12 @@
 		<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
 		<script src="http://code.jquery.com/mobile/1.3.0/jquery.mobile-1.3.0.min.js"></script>
 		 <style>
-			
+			<!-- Add padding to tweets -->
 			.ui-block-a, .ui-block-b, .ui-block-c {
 				padding-right:35px;
 				padding-left:35px;
 			} 
-			
+			<!-- Media query; uses single column display at smaller browser size; else 3 columns -->
 			@media all and (max-width: 50em) {
 				.my-breakpoint .ui-block-a, 
 				.my-breakpoint .ui-block-b, 
@@ -23,7 +23,7 @@
 					float:none; 
 				}
 			}
-			
+			<!-- Disable underlining of links for style -->
 			a {
 				text-decoration:none
 			}
@@ -44,8 +44,9 @@
 			<div data-role="popup" data-theme="a" id="pop_4" class="ui-content"></div> 
 			<div data-role="popup" data-theme="a" id="pop_5" class="ui-content"></div> 
 			<div data-role="popup" data-theme="a" id="pop_6" class="ui-content"></div>
+			<!-- div for image popups -->
 			<div data-role="popup" data-theme="a" id="pop_img" class="ui-content"></div>
-			<!-- div for iframe links -->
+			<!-- div for iframe popups -->
 			<div data-role="popup" id="iframePop" data-overlay-theme="a" data-theme="d" data-tolerance="15,15" class="ui-content">
 				<iframe id="iframe" src="" width="800" height="400"seamless></iframe>
 			</div>
@@ -98,7 +99,8 @@
 		</div>
 	</body>
 	<script type="text/javascript">
-
+	
+		//Variables for core functions
 		var blockType = 'a';
 		var popId = 1;
 		var start = 0;
@@ -107,6 +109,7 @@
 		var allTweets = [];
 		var tweetObject = {};
 		var allImages = [];
+		
 		//Function to toggle block types
 		function toggleBlock() {
 			if (blockType=='a')
@@ -117,7 +120,7 @@
 				return 'a';
 		}
 		
-		//Function to search for user mentions
+		//Function to search for user mentions; match strings starting with @
 		function findMentions(str) {
 			return str.match(/@[a-zA-Z0-9]+/gi);
 		} 
@@ -129,9 +132,9 @@
 				url_list.push(this.url);
 			});
 			return url_list;
-			//return str.match(/http:\/\/.\S+/gi);
 		} 
 		
+		//Function to find image links
 		function findImages(str) {
 			if (str) {
 				var img_list = [];
@@ -141,17 +144,16 @@
 					img_obj.extended_url = this.media_url;
 					img_list.push(img_obj);
 				});
-				//alert(img_list);
 				return img_list;
 			} else return null;
 		}
 		
-		//Function to search for hashtags
+		//Function to search for hashtags; match strings starting with #
 		function findHashtags(str) {
 			return str.match(/#[a-zA-Z0-9]+/gi);
 		} 
 		
-		//Function; replaces iframe src to link url
+		//Function; replaces iFrame src to link url; used to update iFrame
 		function replaceSrc(url) {
 			$('#iframe').attr('src', url);
 		}
@@ -161,7 +163,7 @@
 			$('#'+id).popup("open");
 		}
 		
-		//Function; appends close buttons to all profile pops.. lol
+		//Function; appends close buttons to all profile popups
 		function appendCloseButton() {
 			$('.ui-content').append('<a href="#" data-rel="back" data-role="button" data-theme="a" data-icon="delete" data-iconpos="notext" class="ui-btn-right">Close</a>');
 		}
@@ -179,7 +181,8 @@
 				popId++;
 			});
 		}
-			
+		
+		//Function to display next 6 tweet entires; calls buildNextPage()
 		function loadNextPage() {
 			if (end < allTweets.length) {
 				start += 6;
@@ -192,10 +195,11 @@
 				$('#footer').append('Page '+pageNum);
 				buildNewPage();
 
-			} else 
+			} else //dialog for last page
 				$.mobile.changePage( "#last_page_dialog", { role: "dialog" } );
 		}
 		
+		//Function to display revious 6 pages
 		function loadPrevPage() {
 			if (start > 0) {
 				start -= 6;
@@ -208,34 +212,34 @@
 				$('#footer').append('Page '+pageNum);
 				buildNewPage();
 				
-			} else 
+			} else //dialog for first page
 				$.mobile.changePage( "#first_page_dialog", { role: "dialog" } );
 		
 		}
 		 
-		//Delgate all links on click; replace iframe src value to value of clicked link,
-		//then popup iframe.
+		//Delgate all links on click; replace iFrame src value to value of clicked link,
+		//then popup iFrame.
 		$(document).on('click', '.iframe_link', function() {
-			var url = $(this).attr('value');
-			if($('#option_iframe').is(':checked')) {
+			var url = $(this).attr('value'); //retrieve url stored in <a> tag
+			if($('#option_iframe').is(':checked')) { //use iFrame
 				replaceSrc(url);
 				openPopup('iframePop');
-			} else {
+			} else { //use browser
 				window.open(url);
 			}
 		});
 		
-		//Homepage link click funcion
+		//Homepage link click funcion; always uses browser
 		$(document).on('click', '.homepage_link', function() {
 			var url = $(this).attr('value');
 			window.open(url);
 		});
 	
-		//Image link click function
+		//Image link click function; uses popup
 		$(document).on('click', '.image_link', function() {
-			var url = $(this).attr('value');
-			$('#pop_img').html('<img src='+url+'>');
-			openPopup('pop_img');
+			var url = $(this).attr('value'); //retrieve url
+			$('#pop_img').html('<img src='+url+'>'); //update popup
+			openPopup('pop_img'); //open
 		});
 	
 		//Next page swipe function
@@ -261,22 +265,22 @@
 		//add close button to all profile pop ups
 		appendCloseButton();
 		
-		$.getJSON('favs2.json', function (data) {
-			//buildPages(data.length);
+		$.getJSON('favs.json', function (data) { //iterate through each tweet entry and gather informtion
 			$.each(data, function () {
 				if (popId > 6) //reset id to 0
 					popId = 1;
-				var text = this.text;
+				var text = this.text; //content of tweet
+				//differentiate each part of content
 				mentions = findMentions(text);
 				links = findLinks(this.entities.urls);
 				imgs = findImages(this.entities.media);
 				hashtags = findHashtags(text);
 				if (mentions)
-					$.each(mentions, function (index, name) { //highlight mentions
+					$.each(mentions, function (index, name) { //highlight mentions; link to twitter user page
 						text = text.replace(name, '<a href="https://twitter.com/'+name+'" target="_blank"><span style="color:#348781">'+name+'</span></a>');
 					});
 				if (links)
-					$.each(links, function (index, url) { //highlight links and make them links
+					$.each(links, function (index, url) { //highlight links; store url
 						text = text.replace(url, '<a href="#" class="iframe_link" value="'+url+'"><span style="color:#C12869">'+url+'</span></a>');
 						
 					});
@@ -286,8 +290,8 @@
 						
 					});
 				if (imgs)
-					$.each(imgs, function (index, img_obj) { //highlight hashtags
-						text = text.replace(img_obj.url, '<a href="#" class="image_link" value="'+img_obj.extended_url+'">'+img_obj.url+'/a>');
+					$.each(imgs, function (index, img_obj) { //highlight images; store url
+						text = text.replace(img_obj.url, '<a href="#" class="image_link" value="'+img_obj.extended_url+'"><span style="color:#C12869">'+img_obj.url+'</span></a>');
 						
 					});
 				//profile content
@@ -304,9 +308,7 @@
 				allTweets.push(tweetObject);
 				popId++;
 			});
-			buildNewPage();
+			buildNewPage(); //initialize first page
 		});	
-		
 	</script>
-	
 </html>
