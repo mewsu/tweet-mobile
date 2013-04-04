@@ -1,0 +1,314 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<title>Page Title</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="http://code.jquery.com/mobile/1.3.0/jquery.mobile-1.3.0.min.css" />
+		<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+		<script src="http://code.jquery.com/mobile/1.3.0/jquery.mobile-1.3.0.min.js"></script>
+		 <style>
+			<!-- Add padding to tweets -->
+			.ui-block-a, .ui-block-b, .ui-block-c {
+				padding-right:35px;
+				padding-left:35px;
+			} 
+			<!-- Media query; uses single column display at smaller browser size; else 3 columns -->
+			@media all and (max-width: 50em) {
+				.my-breakpoint .ui-block-a, 
+				.my-breakpoint .ui-block-b, 
+				.my-breakpoint .ui-block-c,
+				.my-breakpoint .ui-block-d,
+				.my-breakpoint .ui-block-e { 
+					width: 100%; 
+					float:none; 
+				}
+			}
+			<!-- Disable underlining of links for style -->
+			a {
+				text-decoration:none
+			}
+			
+			iframe {
+				max-width: 100%;
+			}
+			
+		</style>
+	</head>
+	<body>
+
+		<div data-role="page" data-theme="b" id="top">
+			<!-- divs for user profile popups -->
+			<div data-role="popup" data-theme="a" id="pop_1" class="ui-content"></div>
+			<div data-role="popup" data-theme="a" id="pop_2" class="ui-content"></div>
+			<div data-role="popup" data-theme="a" id="pop_3" class="ui-content"></div> 
+			<div data-role="popup" data-theme="a" id="pop_4" class="ui-content"></div> 
+			<div data-role="popup" data-theme="a" id="pop_5" class="ui-content"></div> 
+			<div data-role="popup" data-theme="a" id="pop_6" class="ui-content"></div>
+			<!-- div for image popups -->
+			<div data-role="popup" data-theme="a" id="pop_img" class="ui-content"></div>
+			<!-- div for iframe popups -->
+			<div data-role="popup" id="iframePop" data-overlay-theme="a" data-theme="d" data-tolerance="15,15" class="ui-content">
+				<iframe id="iframe" src="" width="800" height="400"seamless></iframe>
+			</div>
+			<!-- div for options panel -->
+			<div data-role="panel" id="optionsPanel" data-position="right" data-theme="a" data-display="push">
+				<h3>Options</h3>
+				<form>
+					<fieldset data-role="controlgroup" data-type="horizontal">
+						<legend>Links:</legend>
+						<input data-theme="a" name="radio-choice-h-2" id="option_browser" value="on" checked="checked" type="radio">
+						<label for="option_browser">Browser</label>
+						<input data-theme="a" name="radio-choice-h-2" id="option_iframe" value="off" type="radio">
+						<label for="option_iframe">iFrame</label>
+					</fieldset>
+				</form>
+			</div>
+			<!-- Visible Page -->
+			<!-- Top Navigation bar -->
+			<div data-role="header" data-position="fixed">
+				<h1>Favorite Tweets</h1>
+				<a href="#" id="nextPage" data-icon="arrow-r" class="ui-btn-right">Next</a>
+				<a href="#" id="prevPage" data-icon="arrow-l" class="ui-btn-left">Back</a>
+			</div>
+			<!-- Content (Tweets) -->
+			<div data-role="content" class="ui-grid-b my-breakpoint" id="tweets" ></div>
+			<!-- Bottom navigation bar -->
+			<div data-role="footer" data-position="fixed">
+				<h1 id="footer">Page 1</h1>
+				<a href="#optionsPanel" data-icon="gear" class="ui-btn-right">Options</a>
+			</div>
+		</div>
+		<!-- Error dialog pages -->
+		<div data-role="page" data-theme="b" id="last_page_dialog">
+			<div data-role="header">
+				<h2>No more pages</h2>
+			</div>
+			<div data-role="content">
+				<h3 align="center">You are on the last page!</h3>
+				<a href="#" data-role="button" data-theme="b" data-rel="back">Don't need you to tell me.</a>
+			</div>
+		</div>
+		<div data-role="page" data-theme="b" id="first_page_dialog">
+			<div data-role="header">
+				<h2>No more pages</h2>
+			</div>
+			<div data-role="content">
+				<h3 align="center">You are on the first page!</h3>
+				<a href="#" data-role="button" data-theme="b" data-rel="back">I knew that.</a>
+			</div>
+		</div>
+	</body>
+	<script type="text/javascript">
+	
+		//Variables for core functions
+		var blockType = 'a';
+		var popId = 1;
+		var start = 0;
+		var end = 6;
+		var pageNum = 1;
+		var allTweets = [];
+		var tweetObject = {};
+		var allImages = [];
+		
+		//Function to toggle block types
+		function toggleBlock() {
+			if (blockType=='a')
+				return 'b';
+			else if (blockType=='b')
+				return 'c';
+			else
+				return 'a';
+		}
+		
+		//Function to search for user mentions; match strings starting with @
+		function findMentions(str) {
+			return str.match(/@[a-zA-Z0-9]+/gi);
+		} 
+		
+		//Function to search for URL links
+		function findLinks(str) {
+			var url_list = [];
+			$.each(str, function() {
+				url_list.push(this.url);
+			});
+			return url_list;
+		} 
+		
+		//Function to find image links
+		function findImages(str) {
+			if (str) {
+				var img_list = [];
+				$.each(str, function() {
+					var img_obj = {};
+					img_obj.url = this.url;
+					img_obj.extended_url = this.media_url;
+					img_list.push(img_obj);
+				});
+				return img_list;
+			} else return null;
+		}
+		
+		//Function to search for hashtags; match strings starting with #
+		function findHashtags(str) {
+			return str.match(/#[a-zA-Z0-9]+/gi);
+		} 
+		
+		//Function; replaces iFrame src to link url; used to update iFrame
+		function replaceSrc(url) {
+			$('#iframe').attr('src', url);
+		}
+		
+		//Function; manually open popup
+		function openPopup(id) {
+			$('#'+id).popup("open");
+		}
+		
+		//Function; appends close buttons to all profile popups
+		function appendCloseButton() {
+			$('.ui-content').append('<a href="#" data-rel="back" data-role="button" data-theme="a" data-icon="delete" data-iconpos="notext" class="ui-btn-right">Close</a>');
+		}
+		
+		//Function; reloads tweets in content to reflect next page
+		function buildNewPage() {
+			newTweets = allTweets.slice(start, end);
+			//reset popId counter so profiles match
+			popId = 1;
+			$.each(newTweets, function (key, value) {
+				//append tweet content to page
+				$('#tweets').append(value.content)
+				//append profile content to popup div
+				$('#pop_'+popId).append(value.profile); 
+				popId++;
+			});
+		}
+		
+		//Function to display next 6 tweet entires; calls buildNextPage()
+		function loadNextPage() {
+			if (end < allTweets.length) {
+				start += 6;
+				end += 6;
+				popId = 1;
+				$('#tweets').empty(); //removes all tweets
+				$('.profile_content').remove(); //removes profile pop-up content; keeps button
+				pageNum++; 
+				$('#footer').empty();
+				$('#footer').append('Page '+pageNum);
+				buildNewPage();
+
+			} else //dialog for last page
+				$.mobile.changePage( "#last_page_dialog", { role: "dialog" } );
+		}
+		
+		//Function to display revious 6 pages
+		function loadPrevPage() {
+			if (start > 0) {
+				start -= 6;
+				end -= 6;
+				popId = 1;
+				$('#tweets').empty(); //removes all tweets
+				$('.profile_content').remove(); //removes profile pop-up content; keeps button
+				pageNum--; 
+				$('#footer').empty();
+				$('#footer').append('Page '+pageNum);
+				buildNewPage();
+				
+			} else //dialog for first page
+				$.mobile.changePage( "#first_page_dialog", { role: "dialog" } );
+		
+		}
+		 
+		//Delgate all links on click; replace iFrame src value to value of clicked link,
+		//then popup iFrame.
+		$(document).on('click', '.iframe_link', function() {
+			var url = $(this).attr('value'); //retrieve url stored in <a> tag
+			if($('#option_iframe').is(':checked')) { //use iFrame
+				replaceSrc(url);
+				openPopup('iframePop');
+			} else { //use browser
+				window.open(url);
+			}
+		});
+		
+		//Homepage link click funcion; always uses browser
+		$(document).on('click', '.homepage_link', function() {
+			var url = $(this).attr('value');
+			window.open(url);
+		});
+	
+		//Image link click function; uses popup
+		$(document).on('click', '.image_link', function() {
+			var url = $(this).attr('value'); //retrieve url
+			$('#pop_img').html('<img src='+url+'>'); //update popup
+			openPopup('pop_img'); //open
+		});
+	
+		//Next page swipe function
+        $( document ).on( "swipeleft", function() {
+			loadNextPage();
+        });
+		
+		//Previous page swipe function
+        $( document ).on( "swiperight", function() {
+			loadPrevPage();
+        });
+		
+		//Next page click function
+		$('#nextPage').click(function() {
+			loadNextPage();
+		});
+		
+		//Previous page click function
+		$('#prevPage').click(function() {
+			loadPrevPage();
+		});
+		
+		//add close button to all profile pop ups
+		appendCloseButton();
+		
+		$.getJSON('favs.json', function (data) { //iterate through each tweet entry and gather informtion
+			$.each(data, function () {
+				if (popId > 6) //reset id to 0
+					popId = 1;
+				var text = this.text; //content of tweet
+				//differentiate each part of content
+				mentions = findMentions(text);
+				links = findLinks(this.entities.urls);
+				imgs = findImages(this.entities.media);
+				hashtags = findHashtags(text);
+				if (mentions)
+					$.each(mentions, function (index, name) { //highlight mentions; link to twitter user page
+						text = text.replace(name, '<a href="https://twitter.com/'+name+'" target="_blank"><span style="color:#348781">'+name+'</span></a>');
+					});
+				if (links)
+					$.each(links, function (index, url) { //highlight links; store url
+						text = text.replace(url, '<a href="#" class="iframe_link" value="'+url+'"><span style="color:#C12869">'+url+'</span></a>');
+						
+					});
+				if (hashtags)
+					$.each(hashtags, function (index, tag) { //highlight hashtags
+						text = text.replace(tag, '<span style="color:#C7A317">'+tag+'</span>');
+						
+					});
+				if (imgs)
+					$.each(imgs, function (index, img_obj) { //highlight images; store url
+						text = text.replace(img_obj.url, '<a href="#" class="image_link" value="'+img_obj.extended_url+'"><span style="color:#C12869">'+img_obj.url+'</span></a>');
+						
+					});
+				//profile content
+				userPopup = '<div class="profile_content"><h2>User Profile:</h2><h4><a href="https://twitter.com/'+this.user.screen_name+'" target="_blank">'+this.user.screen_name+'</a> ('+this.user.name+') <br><br><img src="'+this.user.profile_image_url+'"><br><br>Followers: '+this.user.followers_count+'<br><br>Friends: '+this.user.friends_count+'<br><br>Location: '+this.user.location+'<br><br>Info: '+this.user.description+'<br><br>Homepage: <a href="#" class="homepage_link" value="'+this.user.url+'">'+this.user.url+'</a></h4></div>';
+				//tweet content
+				content = '<div class="ui-block-'+blockType+'"><h3 align="left">"'+text+'"</h3><h4 align="right">-<a href="#pop_'+popId+'" class="profile_link"  data-rel="popup"  data-inline="true" data-transition="pop">'+this.user.screen_name+'</a><br>'+this.created_at+'</h4><br><br>';
+				//toggle next block
+				blockType = toggleBlock();
+				//create a tweet object
+				tweetObject = {};
+				tweetObject.content = content;
+				tweetObject.profile = userPopup;
+				//push tweet object to all tweets array
+				allTweets.push(tweetObject);
+				popId++;
+			});
+			buildNewPage(); //initialize first page
+		});	
+	</script>
+</html>
