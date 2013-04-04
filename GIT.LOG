@@ -1,3 +1,15 @@
+commit 3767abb499249dbc7a2fedd1cf1942311dcab3b0
+Author: Truman <zeiontic@gmail.com>
+Date:   Mon Apr 1 12:49:46 2013 -0400
+
+    added small user guide in README
+
+commit 867c62d1f4edc8b6d19b0a91623ed7a56f16a17b
+Author: Truman <zeiontic@gmail.com>
+Date:   Mon Apr 1 12:41:28 2013 -0400
+
+    added GIT.LOG
+
 commit 26ccc332083e842c4bbfec5c82d7e851821279a7
 Author: Truman <zeiontic@gmail.com>
 Date:   Mon Apr 1 12:37:24 2013 -0400
